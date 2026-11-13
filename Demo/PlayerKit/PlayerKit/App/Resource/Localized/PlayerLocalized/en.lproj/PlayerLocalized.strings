@@ -12,6 +12,7 @@
 "SuperPlayerDemo.MoviePlayer.customthumbnail" = "Custom Thumbnails";
 "SuperPlayerDemo.MoviePlayer.videoplaylist" = "Video Playlist";
 "SuperPlayerDemo.MoviePlayer.downloadforofflineplayback" = "Download for Offline Playback";
+"SuperPlayerDemo.MoviePlayer.drmplay" = "DRM play";
 "SuperPlayerDemo.MoviePlayer.tencentcloudaudiovideo" = "Tencent Cloud Audio/Video";
 "SuperPlayerDemo.MoviePlayer.simplerandlighter" = "Simpler and Lighter";
 "SuperPlayerDemo.MoviePlayer.whatisdigitization" = "What is Digitization?";
@@ -138,7 +139,10 @@
 "SuperPlayerDemo.Vod.Config.PrioritySoftSolution" = "Prefer software decoding";
 "SuperPlayerDemo.Vod.Config.PlayResourceType" = "Play resource type";
 "SuperPlayerDemo.Vod.Config.SelectPayResource" = "Select play resource";
-"SuperPlayerDemo.Vod.Config.HLS" = "HLS (default)";
+"SuperPlayerDemo.Vod.Config.AUTO" = "AUTO(default)";
+"SuperPlayerDemo.Vod.Config.HLS_VOD" = "HLS_vod";
+"SuperPlayerDemo.Vod.Config.HLS_LIVE" = "HLS_live";
+"SuperPlayerDemo.Vod.Config.FILE_VOD" = "File";
 "SuperPlayerDemo.Vod.Config.Dash" = "Dash";
 "SuperPlayerDemo.Vod.Config.Save" = "Save";
 "SuperPlayerDemo.Vod.Config.Reset" = "Reset";

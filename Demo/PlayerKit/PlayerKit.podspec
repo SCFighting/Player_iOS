@@ -22,9 +22,11 @@ Pod::Spec.new do |spec|
            'PlayerKit/App/AppCommon/EnterprisePITU/**/*',
            'PlayerKit/UGCShortVideoPlayDemo/ShortVideo.xcassets',
            'PlayerKit/TUIShortVideoPlayDemo/Data/TUIShortVideoPlayer.plist',
+           'PlayerKit/TUIShortVideoPlayDemo/TUIDemo/Resource/*',
            'PlayerKit/TUIShortVideoPlayDemo/TUISDK/TUIPlayerShortVideo/TUIPlayerShortVideo.bundle',
            'PlayerKit/SuperPlayerDemo/SuperPlayer/CFDanmaku/danmakufile']
         }
+        s.resource = 'PlayerKit/App/Resource/**/*.bundle'
     end
     
     spec.subspec "Player" do |s|

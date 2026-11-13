@@ -34,8 +34,17 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0902A9BB2B39312B00854F1B /* TXSoundTouch.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TXSoundTouch.xcframework; path = ../../../SDK/TXSoundTouch.xcframework; sourceTree = "<group>"; };
+		0902A9BC2B39312C00854F1B /* TXFFmpeg.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TXFFmpeg.xcframework; path = ../../../SDK/TXFFmpeg.xcframework; sourceTree = "<group>"; };
+		0902A9BD2B39312C00854F1B /* TXLiteAVSDK_Player.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TXLiteAVSDK_Player.xcframework; path = ../../../SDK/TXLiteAVSDK_Player.xcframework; sourceTree = "<group>"; };
+		0902A9C82B39315D00854F1B /* TXLiteAVSDK_Player_Premium.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TXLiteAVSDK_Player_Premium.xcframework; path = ../../../SDK/TXLiteAVSDK_Player_Premium.xcframework; sourceTree = "<group>"; };
 		0902A9F02B3EAF3800854F1B /* Player_Premium.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = Player_Premium.entitlements; sourceTree = "<group>"; };
 		0902A9F12B3EAF3900854F1B /* Player.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = Player.entitlements; sourceTree = "<group>"; };
+		095BE3852B35360D00F4637B /* PlayerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PlayerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		095BE3862B35360D00F4637B /* SuperPlayerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SuperPlayerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		095BE38C2B35361B00F4637B /* PlayerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PlayerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		095BE38D2B35361B00F4637B /* SuperPlayerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SuperPlayerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		095BE3982B35390400F4637B /* ToolkitBase.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ToolkitBase.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		095BE3AB2B3562BA00F4637B /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		095BE3AD2B3562C900F4637B /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		095BE3AE2B3562C900F4637B /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
@@ -48,6 +57,10 @@
 		095BE3BD2B35636200F4637B /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		095BE3BF2B35638600F4637B /* VideoToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoToolbox.framework; path = System/Library/Frameworks/VideoToolbox.framework; sourceTree = SDKROOT; };
 		095BE3C12B3563A700F4637B /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		095BE3C32B3563DF00F4637B /* ToolkitBase.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ToolkitBase.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		095BE3C62B356A8200F4637B /* PlayerKitBundle.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = PlayerKitBundle.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		095BE3C72B356A8200F4637B /* SuperPlayerKitBundle.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = SuperPlayerKitBundle.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		095BE3C82B356A8200F4637B /* ToolkitBaseBundle.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = ToolkitBaseBundle.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		095BE3CE2B35704300F4637B /* TUIPlayerShortVideo.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = TUIPlayerShortVideo.bundle; path = ../PlayerKit/PlayerKit/TUIShortVideoPlayDemo/TUISDK/TUIPlayerShortVideo/TUIPlayerShortVideo.bundle; sourceTree = "<group>"; };
 		09947C262B343C0300BBFE84 /* Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Player.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09947C292B343C0300BBFE84 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -63,6 +76,10 @@
 		09947C772B3453E400BBFE84 /* TUIPlayerShortVideo.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TUIPlayerShortVideo.xcframework; path = ../PlayerKit/PlayerKit/TUIShortVideoPlayDemo/TUISDK/TUIPlayerShortVideo/TUIPlayerShortVideo.xcframework; sourceTree = "<group>"; };
 		09947C8D2B34555000BBFE84 /* Player_Premium-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Player_Premium-Info.plist"; sourceTree = "<group>"; };
 		09947C8E2B34555000BBFE84 /* Player-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Player-Info.plist"; sourceTree = "<group>"; };
+		09947C9D2B34560400BBFE84 /* TXSoundTouch.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TXSoundTouch.xcframework; path = ../../SDK/TXSoundTouch.xcframework; sourceTree = "<group>"; };
+		09947C9E2B34560400BBFE84 /* TXFFmpeg.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TXFFmpeg.xcframework; path = ../../SDK/TXFFmpeg.xcframework; sourceTree = "<group>"; };
+		09947CA32B34575700BBFE84 /* TXLiteAVSDK_Player.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TXLiteAVSDK_Player.xcframework; path = ../../SDK/TXLiteAVSDK_Player.xcframework; sourceTree = "<group>"; };
+		09947CA72B34576700BBFE84 /* TXLiteAVSDK_Player_Premium.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TXLiteAVSDK_Player_Premium.xcframework; path = ../../SDK/TXLiteAVSDK_Player_Premium.xcframework; sourceTree = "<group>"; };
 		09947CAE2B34669700BBFE84 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		09947CAF2B34669700BBFE84 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
 		09947CB22B34672500BBFE84 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/PlayerLocalized.strings"; sourceTree = "<group>"; };
@@ -142,7 +159,15 @@
 		09947C582B34526000BBFE84 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0902A9C82B39315D00854F1B /* TXLiteAVSDK_Player_Premium.xcframework */,
+				0902A9BC2B39312C00854F1B /* TXFFmpeg.xcframework */,
+				0902A9BD2B39312C00854F1B /* TXLiteAVSDK_Player.xcframework */,
+				0902A9BB2B39312B00854F1B /* TXSoundTouch.xcframework */,
 				095BE3CE2B35704300F4637B /* TUIPlayerShortVideo.bundle */,
+				095BE3C62B356A8200F4637B /* PlayerKitBundle.bundle */,
+				095BE3C72B356A8200F4637B /* SuperPlayerKitBundle.bundle */,
+				095BE3C82B356A8200F4637B /* ToolkitBaseBundle.bundle */,
+				095BE3C32B3563DF00F4637B /* ToolkitBase.framework */,
 				095BE3C12B3563A700F4637B /* libz.tbd */,
 				095BE3BF2B35638600F4637B /* VideoToolbox.framework */,
 				095BE3BD2B35636200F4637B /* MetalKit.framework */,
@@ -155,6 +180,15 @@
 				095BE3AD2B3562C900F4637B /* AVFoundation.framework */,
 				095BE3AE2B3562C900F4637B /* AVKit.framework */,
 				095BE3AB2B3562BA00F4637B /* Accelerate.framework */,
+				095BE3982B35390400F4637B /* ToolkitBase.framework */,
+				095BE38C2B35361B00F4637B /* PlayerKit.framework */,
+				095BE38D2B35361B00F4637B /* SuperPlayerKit.framework */,
+				095BE3852B35360D00F4637B /* PlayerKit.framework */,
+				095BE3862B35360D00F4637B /* SuperPlayerKit.framework */,
+				09947CA72B34576700BBFE84 /* TXLiteAVSDK_Player_Premium.xcframework */,
+				09947CA32B34575700BBFE84 /* TXLiteAVSDK_Player.xcframework */,
+				09947C9E2B34560400BBFE84 /* TXFFmpeg.xcframework */,
+				09947C9D2B34560400BBFE84 /* TXSoundTouch.xcframework */,
 				09947C762B3453E400BBFE84 /* TUIPlayerCore.xcframework */,
 				09947C772B3453E400BBFE84 /* TUIPlayerShortVideo.xcframework */,
 				FCB1ED86B863D661ED749BB6 /* Pods_Player.framework */,
@@ -629,6 +663,7 @@
 					"$(inherited)",
 					"-all_load",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yunxiao.dev.liteav.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Yunxiao Develop Profile";
@@ -668,6 +703,7 @@
 					"$(inherited)",
 					"-all_load",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yunxiao.dev.liteav.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Yunxiao Develop Profile";
@@ -706,6 +742,7 @@
 					"-Objc",
 					"$(inherited)",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yunxiao.dev.liteav.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Yunxiao Develop Profile";
@@ -744,6 +781,7 @@
 					"-Objc",
 					"$(inherited)",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yunxiao.dev.liteav.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Yunxiao Develop Profile";

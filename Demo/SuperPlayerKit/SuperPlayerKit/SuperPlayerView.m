@@ -1,52 +1,40 @@
-#import "SuperPlayerView.h"
+//  Copyright © 2018 Tencent. All rights reserved.
+//
 
 #import <AVFoundation/AVFoundation.h>
 #import <Photos/Photos.h>
-
+#if __has_include(<TXLiteAVSDK_Player/TXLiteAVSDK.h>)
+#import <TXLiteAVSDK_Player/TXLiteAVSDK.h>
+#elif __has_include(<TXLiteAVSDK_Player_Premium/TXLiteAVSDK.h>)
+#import <TXLiteAVSDK_Player_Premium/TXLiteAVSDK.h>
+#elif __has_include(<TXLiteAVSDK_Professional/TXLiteAVSDK.h>)
+#import <TXLiteAVSDK_Professional/TXLiteAVSDK.h>
+#elif __has_include(<TXLiteAVSDK_UGC/TXLiteAVSDK.h>)
+#import <TXLiteAVSDK_UGC/TXLiteAVSDK.h>
+#else
+#import "TXLiteAVSDK.h"
+#endif
 #if __has_include(<SDWebImage/SDWebImage.h>)
 #import <SDWebImage/SDWebImage.h>
 #else
 #import "SDWebImage.h"
 #endif
-
 #import "DataReport.h"
+#import "DynamicWatermarkView.h"
+#import "DynamicWaterModel.h"
 #import "J2Obj.h"
 #import "NSString+URL.h"
-#import "SPDefaultControlView.h"
 #import "StrUtils.h"
 #import "SuperPlayer.h"
-#import "SuperPlayerControlViewDelegate.h"
+#import "SuperPlayerLocalized.h"
 #import "SuperPlayerModelInternal.h"
+#import "SuperPlayerPIPManager.h"
+#import "SuperPlayerSmallWindowManager.h"
+#import "SuperPlayerSubtitles.h"
+#import "SuperPlayerTrackView.h"
 #import "SuperPlayerView+Private.h"
 #import "TXBitrateItemHelper.h"
 #import "TXCUrl.h"
-#import "UIView+Fade.h"
-#import "UIView+MMLayout.h"
-#import "UIInterface+TXRotation.h"
-// TODO: 处理头部引用
-#import "TXAudioCustomProcessDelegate.h"
-#import "TXAudioRawDataDelegate.h"
-#import "TXBitrateItem.h"
-#import "TXImageSprite.h"
-#import "TXLiteAVCode.h"
-#import "TXLiveAudioSessionDelegate.h"
-#import "TXLiveBase.h"
-#import "TXLivePlayConfig.h"
-#import "TXLivePlayListener.h"
-#import "TXLivePlayer.h"
-#import "TXLiveRecordListener.h"
-#import "TXLiveRecordTypeDef.h"
-#import "TXLiveSDKEventDef.h"
-#import "TXLiveSDKTypeDef.h"
-#import "TXPlayerAuthParams.h"
-#import "TXVipTipView.h"
-#import "TXVipWatchView.h"
-#import "TXVipWatchModel.h"
-#import "DynamicWatermarkView.h"
-#import "DynamicWaterModel.h"
-#import "SuperPlayerLocalized.h"
-#import "SuperPlayerTrackView.h"
-#import "SuperPlayerSubtitles.h"
 #ifdef ENABLE_UGC
 #import "TXUGCBase.h"
 #import "TXUGCPartsManager.h"
@@ -54,14 +42,13 @@
 #import "TXUGCRecordListener.h"
 #import "TXUGCRecordTypeDef.h"
 #endif
-#import "TXVideoCustomProcessDelegate.h"
-#import "TXVodPlayConfig.h"
-#import "TXVodPlayListener.h"
-#import "TXVodPlayer.h"
-#import "TXPlayerGlobalSetting.h"
+#import "TXVipTipView.h"
+#import "TXVipWatchModel.h"
+#import "TXVipWatchView.h"
+#import "UIInterface+TXRotation.h"
+#import "UIView+Fade.h"
+#import "UIView+MMLayout.h"
 
-#import "SuperPlayerSmallWindowManager.h"
-#import "SuperPlayerPIPManager.h"
 static UISlider *_volumeSlider;
 
 #define CellPlayerFatherViewTag     200
@@ -69,6 +56,7 @@ static UISlider *_volumeSlider;
 #define SUPPORT_PARAM_MINOR_VERSION (2)
 #define PLAY_FORWARD_SPEED_RATE     3
 #define PLAY_BACKWARD_SEEK_TIME     5
+#define SUBTUTLE_INVALID_INDEX -1
 
 //ignore compiler warnings
 //忽略编译器的警告
@@ -201,8 +189,8 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     _hasStartPip = NO;
     _restoreUI = NO;
     _hasStartPipLoading = NO;
-    _lastSubtitleIndex = -1;
-    _lastAudioTrackIndex = 0;
+    _lastSubtitleIndex = SUBTUTLE_INVALID_INDEX;
+    _lastAudioTrackIndex = INT_MIN;
 }
 
 - (void)dealloc {
@@ -269,15 +257,17 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     _playingIndex = index;
     _isLoopPlayList = isLoop;
     _isVideoList = YES;
+    _lastAudioTrackIndex = INT_MIN;
     [self.vodPlayer stopPlay];
     [self playModelInList:index];
 }
 
-- (void)playWithModelNeedLicence:(SuperPlayerModel *)playerModel {
+- (void)    playWithModelNeedLicence:(SuperPlayerModel *)playerModel {
     LOG_ME;
     _videoModelList = nil;
     _playerModel = playerModel;
     _isVideoList = NO;
+    _lastAudioTrackIndex = INT_MIN;
     [self.controlView setNextBtnState:NO];
     [self setChildViewState];
     [self _playWithModel:playerModel];
@@ -311,11 +301,11 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     if (view) {
         [view addSubview:self.fullScreenBlackView];
         [view addSubview:self];
-        [self.fullScreenBlackView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.edges.mas_offset(UIEdgeInsetsZero);
+        [self.fullScreenBlackView tx_makeConstraints:^(TXConstraintMaker *make) {
+            make.edges.tx_offset(UIEdgeInsetsZero);
         }];
-        [self mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.edges.mas_offset(UIEdgeInsetsZero);
+        [self tx_remakeConstraints:^(TXConstraintMaker *make) {
+            make.edges.tx_offset(UIEdgeInsetsZero);
         }];
     }
 }
@@ -349,6 +339,7 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     [self reportPlay];
     
     self.state = StateStopped;
+    _lastAudioTrackIndex = INT_MIN;
 }
 
 /**
@@ -369,27 +360,32 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     }
     
     if (self.isLive) {
-        self.state         = StatePlaying;
+        self.state = StatePlaying;
         [_livePlayer resume];
-    } else {
-        if (self.state == StatePause || self.state == StateBuffering) {
+        return;
+    }
+    switch (self.state) {
+        case StatePause:
+        case StateBuffering:
+        case StateStopped:
             [self.vodPlayer resume];
             self.state = StatePlaying;
             if (self.delegate && [self.delegate respondsToSelector:@selector(superPlayerDidStart:)]) {
                 [self.delegate superPlayerDidStart:self];
             }
-        } else if (self.state == StatePlaying) {
+            break;
+        case StatePlaying:
             [self.spinner stopAnimating];
-        } else {
-            if (self.state == StatePrepare) {
-                self.state         = StatePlaying;
-                self.coverImageView.hidden = YES;
-                [self.vodPlayer resume];
-            } else {
-                self.centerPlayBtn.hidden = NO;
-                _isPrepare = YES;
-            }
-        }
+            break;
+        case StatePrepare:
+            self.state = StatePlaying;
+            self.coverImageView.hidden = YES;
+            [self.vodPlayer resume];
+            break;
+        default:
+            self.centerPlayBtn.hidden = NO;
+            _isPrepare = YES;
+            break;
     }
 }
 
@@ -423,15 +419,15 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     [self addSubview:self.vipTipView];
     
     if (SuperPlayerWindowShared.isShowing) {
-        self.vipTipView.textFontSize = WINDOW_VIP_TIPVIEW_TEXT_FONT;
-        [self.vipTipView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.bottom.equalTo(self).offset(-WINDOW_VIP_TIPVIEW_BOTTOM);
-            make.left.equalTo(self).offset(WINDOW_VIP_TIPVIEW_LEFT);
-            make.right.equalTo(self);
-            make.height.mas_equalTo(VIP_TIPVIEW_DEFAULT_HEIGHT);
-        }];
+          self.vipTipView.textFontSize = WINDOW_VIP_TIPVIEW_TEXT_FONT;
+          [self.vipTipView tx_makeConstraints:^(TXConstraintMaker *make) {
+              make.bottom.equalTo(self).offset(-WINDOW_VIP_TIPVIEW_BOTTOM);
+              make.left.equalTo(self).offset(WINDOW_VIP_TIPVIEW_LEFT);
+              make.right.equalTo(self);
+              make.height.tx_equalTo(VIP_TIPVIEW_DEFAULT_HEIGHT);
+          }];
     } else {
-        [self.vipTipView mas_makeConstraints:^(MASConstraintMaker *make) {
+        [self.vipTipView tx_makeConstraints:^(TXConstraintMaker *make) {
             if (self.isFullScreen) {
                 if (@available(iOS 11.0, *)) {
                     make.bottom.equalTo(self).offset(-VIP_TIPVIEW_DEFAULTX_BOTTOM);
@@ -443,7 +439,7 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
             }
             make.left.equalTo(self).offset(VIP_TIPVIEW_DEFAULT_LEFT);
             make.right.equalTo(self);
-            make.height.mas_equalTo(VIP_TIPVIEW_DEFAULT_HEIGHT);
+            make.height.tx_equalTo(VIP_TIPVIEW_DEFAULT_HEIGHT);
         }];
     };
     
@@ -651,12 +647,14 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
                     params.sign = _playerModel.videoId.psign;
                     [self preparePlayWithVideoParams:params];
                 }
-            } else {
+            } else if (self.playerModel.appId && self.playerModel.videoId.fileId.length) {
                 TXPlayerAuthParams *params = [[TXPlayerAuthParams alloc] init];
                 params.appId = (int)_playerModel.appId;
                 params.fileId = _playerModel.videoId.fileId;
                 params.sign = _playerModel.videoId.psign;
                 [self preparePlayWithVideoParams:params];
+            } else {
+                [self preparePlayWithDRMBuilder:self.playerModel.drmBuilder];
             }
         }
     }
@@ -690,15 +688,12 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     }
     
     //设置字幕默认样式
-    if([self.controlView isKindOfClass:[SPDefaultControlView class]])
-    {
+    if ([self.controlView isKindOfClass:SPDefaultControlView.class]) {
         NSDictionary *dic = [(SPDefaultControlView *)self.controlView subtitlesConfig];
         [self setSubtitleStyle:dic];
     }
-   
-    
-    self.vodPlayer.token    = self.playerModel.drmToken;
-    
+    self.vodPlayer.token = self.playerModel.drmToken;
+
     self.vodPlayer.enableHWAcceleration = self.playerConfig.hwAcceleration;
     [self.vodPlayer setStartTime:self.startTime];
     self.startTime = 0;
@@ -786,6 +781,7 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
 
 - (void)preparePlayWithVideoParams:(TXPlayerAuthParams *)params {
     [self preparePlayVideo];
+    self.playerConfig.forcedPIP = NO;
     if (_playerModel.action == PLAY_ACTION_AUTO_PLAY || _playerModel.action == PLAY_ACTION_PRELOAD) {
         [self.vodPlayer startVodPlayWithParams:params];
     }
@@ -794,21 +790,32 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
 - (void)preparePlayWithUrl:(NSString *)videoUrl {
     _currentVideoUrl = videoUrl;
     [self preparePlayVideo];
+    self.playerConfig.forcedPIP = NO;
     if (_playerModel.action == PLAY_ACTION_AUTO_PLAY || _playerModel.action == PLAY_ACTION_PRELOAD) {
         [self.vodPlayer startVodPlay:videoUrl];
     }
 }
 
+- (void)preparePlayWithDRMBuilder:(TXPlayerDrmBuilder *)drmBuilder {
+    [self preparePlayVideo];
+    self.playerConfig.forcedPIP = YES;
+    [self.vodPlayer startPlayDrm:drmBuilder];
+}
+
 - (void)startPlay {
-    if (_currentVideoUrl) {
+    if (_currentVideoUrl.length) {
         [self.vodPlayer startVodPlay:_currentVideoUrl];
-    } else {
-        TXPlayerAuthParams *params = [[TXPlayerAuthParams alloc] init];
-        params.appId = (int)_playerModel.appId;
-        params.fileId = _playerModel.videoId.fileId;
-        params.sign = _playerModel.videoId.psign;
-        [self.vodPlayer startVodPlayWithParams:params];
+        return;
     }
+    if (self.playerModel.appId && self.playerModel.videoId.fileId.length) {
+        TXPlayerAuthParams *params = [[TXPlayerAuthParams alloc] init];
+        params.appId = (int)self.playerModel.appId;
+        params.fileId = self.playerModel.videoId.fileId;
+        params.sign = self.playerModel.videoId.psign;
+        [self.vodPlayer startVodPlayWithParams:params];
+        return;
+    }
+    [self.vodPlayer startPlayDrm:self.playerModel.drmBuilder];
 }
 
 - (void)setCoverImage {
@@ -918,52 +925,67 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
 }
 
 - (void)detailTrackAndSubtitlesWithPlayer:(TXVodPlayer *)player {
-    
-    NSMutableArray *trackArray = [NSMutableArray array];
+    // subtitle
     NSMutableArray *subtitlesArray = [NSMutableArray array];
     TXTrackInfo *offInfo = [[TXTrackInfo alloc] init];
     offInfo.name = superPlayerLocalized(@"SuperPlayer.off");
-    offInfo.trackIndex = -1;
+    offInfo.trackIndex = SUBTUTLE_INVALID_INDEX;
     offInfo.isInternal = false;
     offInfo.trackType = TX_VOD_MEDIA_TRACK_TYPE_SUBTITLE;
-    
-    NSInteger subtitlesIndex = 0;
-    if (player.getSubtitleTrackInfo.count > 0) {
-        [subtitlesArray addObjectsFromArray:player.getSubtitleTrackInfo];
-        [subtitlesArray insertObject:offInfo atIndex:0];
-        
-        for (int i = 0; i < subtitlesArray.count; i++) {
-            TXTrackInfo *info = subtitlesArray[i];
-            if (info.trackIndex == self->_lastSubtitleIndex) {
-                subtitlesIndex = i;
-                break;
+    [subtitlesArray addObject:offInfo];
+    for (TXTrackInfo *trackInfo in player.getSubtitleTrackInfo) {
+        if (trackInfo.isInternal) {
+            if (trackInfo.isSelected) {
+                [player deselectTrack:trackInfo.getTrackIndex];
+            }
+            continue;
+        }
+        [subtitlesArray addObject:trackInfo];
+        if (_lastSubtitleIndex != SUBTUTLE_INVALID_INDEX) {
+            if (trackInfo.getTrackIndex == _lastSubtitleIndex) {
+                if (!trackInfo.isSelected) {
+                    [player selectTrack:trackInfo.getTrackIndex];
+                }
+            } else {
+                if (trackInfo.isSelected) {
+                    [player deselectTrack:trackInfo.getTrackIndex];
+                }
+            }
+        } else {
+            if (trackInfo.isSelected) {
+                [player deselectTrack:trackInfo.getTrackIndex];
             }
         }
     }
     
+    // Audio
+    NSMutableArray *trackArray = [NSMutableArray array];
     [trackArray addObjectsFromArray:player.getAudioTrackInfo];
     [trackArray insertObject:offInfo atIndex:0];
-    
-    __block NSInteger audioTrackIndex = 1;
     [trackArray enumerateObjectsUsingBlock:^(TXTrackInfo * _Nonnull obj,
-                                             NSUInteger idx,
-                                             BOOL * _Nonnull stop) {
-        if (obj.trackIndex == self->_lastAudioTrackIndex) {
-            audioTrackIndex = idx;
+                                                           NSUInteger idx,
+                                                           BOOL * _Nonnull stop) {
+        if (_lastAudioTrackIndex != INT_MIN) {
+            if (obj.getTrackIndex == _lastAudioTrackIndex) {
+                if (!obj.isSelected) {
+                    [player selectTrack:obj.getTrackIndex];
+                }
+            } else {
+                if (obj.isSelected) {
+                    [player deselectTrack:obj.getTrackIndex];
+                }
+            }
+            if (_lastAudioTrackIndex == -1) {
+                [self.vodPlayer setMute:YES];
+            }
+        } else {
+            if (obj.isSelected) {
+                _lastAudioTrackIndex = obj.getTrackIndex;
+            }
+            [self.vodPlayer setMute:NO];
         }
     }];
-    [self.controlView resetWithTracks:trackArray currentTrackIndex:audioTrackIndex subtitles:subtitlesArray currentSubtitlesIndex:subtitlesIndex];
-    
-    if (self->_lastSubtitleIndex != -1) {
-        [self.vodPlayer selectTrack:self->_lastSubtitleIndex];
-    }
-    
-    if (self->_lastAudioTrackIndex != -1) {
-        [self.vodPlayer setMute:NO];
-        [self.vodPlayer selectTrack:self->_lastAudioTrackIndex];
-    } else {
-        [self.vodPlayer setMute:YES];
-    }
+    [self.controlView resetWithTracks:trackArray currentTrackIndex:_lastAudioTrackIndex subtitles:subtitlesArray currentSubtitlesIndex:_lastSubtitleIndex];
 }
 
 - (void)detailProgress {
@@ -1007,7 +1029,7 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     _watermarkView = nil;
     if (_playerModel.dynamicWaterModel) {
         [self addSubview:self.watermarkView];
-        [self.watermarkView mas_makeConstraints:^(MASConstraintMaker *make) {
+        [self.watermarkView tx_makeConstraints:^(TXConstraintMaker *make) {
             make.edges.equalTo(self);
         }];
         [self.watermarkView setDynamicWaterModel:_playerModel.dynamicWaterModel];
@@ -1038,18 +1060,6 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     
     if ([self.delegate respondsToSelector:@selector(superPlayerDidStart:)]) {
         [self.delegate superPlayerDidStart:self];
-    }
-    
-    // 重新添加字幕
-    if (self->_lastSubtitleIndex != -1) {
-        [self.vodPlayer selectTrack:self->_lastSubtitleIndex];
-    }
-    // 音轨
-    if (self->_lastAudioTrackIndex != -1) {
-        [self.vodPlayer setMute:NO];
-        [self.vodPlayer selectTrack:self->_lastAudioTrackIndex];
-    } else {
-        [self.vodPlayer setMute:YES];
     }
 }
 
@@ -1107,19 +1117,19 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     [self removeFromSuperview];
     [vc.view addSubview:self.fullScreenBlackView];
     [vc.view addSubview:self];
-    [self.fullScreenBlackView mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.fullScreenBlackView tx_makeConstraints:^(TXConstraintMaker *make) {
         make.edges.equalTo(vc.view);
     }];
-    [self mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self tx_makeConstraints:^(TXConstraintMaker *make) {
         if (@available(iOS 11.0, *)) {
-            make.left.mas_equalTo(vc.view.mas_safeAreaLayoutGuideLeft);
-            make.right.mas_equalTo(vc.view.mas_safeAreaLayoutGuideRight);
+            make.left.tx_equalTo(vc.view.tx_safeAreaLayoutGuideLeft);
+            make.right.tx_equalTo(vc.view.tx_safeAreaLayoutGuideRight);
         } else {
-            make.left.mas_equalTo(vc.view.mas_left);
-            make.right.mas_equalTo(vc.view.mas_right);
+            make.left.tx_equalTo(vc.view.tx_left);
+            make.right.tx_equalTo(vc.view.tx_right);
         }
-        make.top.mas_equalTo(vc.view.mas_top);
-        make.bottom.mas_equalTo(vc.view.mas_bottom);
+        make.top.tx_equalTo(vc.view.tx_top);
+        make.bottom.tx_equalTo(vc.view.tx_bottom);
     }];
     
 }
@@ -1257,9 +1267,8 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
         [self showOrHideBackBtn:YES];
     }
     _isFullScreen = fullScreen;
-    if([self.controlView isKindOfClass:[SPDefaultControlView class]])
-    {
-        [(SPDefaultControlView*)self.controlView fullScreenButtonSelectState:fullScreen];
+    if ([self.controlView isKindOfClass:SPDefaultControlView.class]) {
+        [(SPDefaultControlView *)self.controlView fullScreenButtonSelectState:fullScreen];
     }
     self.controlView.compact = !fullScreen;
 }
@@ -1389,10 +1398,10 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
         return;
     }
     
-    if (!self.isPauseByUser && (self.state != StateStopped && self.state != StateFailed)) {
+    if ((!self.isPauseByUser && ((self.state != StateStopped && self.state != StateFailed) || self.vipWatchView.vipWatchModel))) {
         
-        if (self.playerConfig.pipAutomatic == YES) {
-            if (![TXVodPlayer isSupportSeamlessPictureInPicture]) {
+        if (self.playerConfig.pipAutomatic == YES || self.playerConfig.forcedPIP) {
+            if (![TXVodPlayer isSupportSeamlessPictureInPicture] || self.vipWatchView.vipWatchModel) {
                 [_vodPlayer pause];
                 self.state = StatePause;
             }
@@ -1418,14 +1427,13 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
         return;
     }
     
-    if (!self.isPauseByUser && (self.state != StateStopped && self.state != StateFailed)) {
+    if (!self.isPauseByUser && ((self.state != StateStopped && self.state != StateFailed) ||self.vipWatchView.vipWatchModel)) {
         self.state = StatePlaying;
         [_vodPlayer resume];
         CGFloat value        = _vodPlayer.currentPlaybackTime / _vodPlayer.duration;
         CGFloat playable     = _vodPlayer.playableDuration / _vodPlayer.duration;
         self.controlView.isDragging = NO;
         [self.controlView setProgressTime:self.playCurrentTime totalTime:_vodPlayer.duration progressValue:value playableValue:playable];
-        [_vodPlayer seek:self.playCurrentTime];
     } else if (self.state != StateStopped) {
         self.repeatBtn.hidden = YES;
     }
@@ -1667,8 +1675,8 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     if (_fastView == nil) {
         _fastView = [[SuperPlayerFastView alloc] init];
         [self addSubview:_fastView];
-        [_fastView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.edges.mas_equalTo(UIEdgeInsetsZero);
+        [_fastView tx_makeConstraints:^(TXConstraintMaker *make) {
+            make.edges.tx_equalTo(UIEdgeInsetsZero);
         }];
     }
     return _fastView;
@@ -1786,8 +1794,8 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     _controlView         = controlView;
     controlView.delegate = self;
     [self addSubview:controlView];
-    [controlView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.mas_equalTo(UIEdgeInsetsZero);
+    [controlView tx_makeConstraints:^(TXConstraintMaker *make) {
+        make.edges.tx_equalTo(UIEdgeInsetsZero);
     }];
     [self resetControlViewWithLive:self.isLive shiftPlayback:self.isShiftPlayback isPlaying:self.state == StatePlaying ? YES : NO];
     [controlView setTitle:_controlView.title];
@@ -1964,7 +1972,8 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     self.playerModel.playingDefinition = definition;
     
     if (self.isLive) {
-        [self.livePlayer switchStream:_currentVideoUrl];
+        //[self.livePlayer switchStream:_currentVideoUrl];
+        [self.livePlayer switchStream:self.playerModel.playingDefinitionUrl];
         [self showMiddleBtnMsg:[NSString stringWithFormat:@"正在切换到%@...", definition] withAction:ActionNone];
     } else {
         self.controlView.hidden = YES;
@@ -1988,7 +1997,11 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     
     [self.vodPlayer setRate:self.playerConfig.playRate];
     [self.vodPlayer setMirror:self.playerConfig.mirror];
-    [self.vodPlayer setMute:self.playerConfig.mute];
+    if (_lastAudioTrackIndex == -1) {
+        [self.vodPlayer setMute:YES];
+    } else {
+        [self.vodPlayer setMute:self.playerConfig.mute];
+    }
     [self.vodPlayer setRenderMode:self.playerConfig.renderMode];
 }
 
@@ -2003,7 +2016,11 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     } else {
         [self.vodPlayer setRate:self.playerConfig.playRate];
         [self.vodPlayer setMirror:self.playerConfig.mirror];
-        [self.vodPlayer setMute:self.playerConfig.mute];
+        if (_lastAudioTrackIndex == -1) {
+            [self.vodPlayer setMute:YES];
+        } else {
+            [self.vodPlayer setMute:self.playerConfig.mute];
+        }
         [self.vodPlayer setRenderMode:self.playerConfig.renderMode];
         [self.vodPlayer setAutoPictureInPictureEnabled:self.playerConfig.pipAutomatic];
     }
@@ -2335,6 +2352,7 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
             self.repeatBtn.hidden = YES;
             self.playDidEnd = NO;
             self.controlView.hidden = SuperPlayerWindowShared.isShowing ? YES : NO;
+            [self.controlView setProgressControlStatus:(player.duration > 0)];
             // 不使用vodPlayer.autoPlay的原因是暂停的时候会黑屏，影响体验
             [self prepareAutoplay];
         }
@@ -2381,9 +2399,6 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
                 self.state = StateBuffering;
             }
         } else if (EvtID == PLAY_EVT_VOD_LOADING_END) {
-            if (self.state == StateBuffering) {
-                self.state = StatePlaying;
-            }
             [self.spinner stopAnimating];
         } else if (EvtID == PLAY_EVT_CHANGE_RESOLUTION) {
             if (player.height != 0) {
@@ -2411,7 +2426,7 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
                 model.textColor = [UIColor redColor];
                 if (![self.subviews containsObject:self.watermarkView]) {
                     [self addSubview:self.watermarkView];
-                    [self.watermarkView mas_makeConstraints:^(MASConstraintMaker *make) {
+                    [self.watermarkView tx_makeConstraints:^(TXConstraintMaker *make) {
                         make.edges.equalTo(self);
                         NSLog(@"添加了幽灵水印");
                     }];
@@ -2419,7 +2434,13 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
                 [self.watermarkView setDynamicWaterModel:model];
             }
         }
-        
+        // NOTE:更新12.8及以上播放器版本
+        if (EvtID == VOD_PLAY_EVT_PLAY_PAUSE) {
+            self.repeatBtn.hidden = YES;
+            [self.controlView setPlayState:NO];
+            self.state = StatePause;
+            self.centerPlayBtn.hidden = NO;
+        }
         [self onVodPlayEvent:player event:EvtID withParam:param];
     });
 }
@@ -2508,6 +2529,7 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
             
             if (self.state == StateBuffering) self.state = StatePlaying;
             [self.netWatcher loadingEndEvent];
+            self.controlView.hidden = SuperPlayerWindowShared.isShowing ? YES : NO;
         } else if (EvtID == PLAY_EVT_PLAY_END) {
             [self moviePlayDidEnd];
         } else if (EvtID == PLAY_ERR_NET_DISCONNECT) {
@@ -2656,11 +2678,12 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
         if (!_playDidEnd && !isShowVipWatchView && _restoreUI) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 [player resume];
+                [self.controlView setPlayState:YES];
                 self->_restoreUI = NO;
             });
         } else {
             if (!self.didEnterBackground) {
-                if (_playDidEnd || isShowVipWatchView) {
+                if (_playDidEnd) {
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [self pause];
                         [player stopPlay];
@@ -2724,9 +2747,9 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
         _middleBlackBtn.backgroundColor = RGBA(0, 0, 0, 0.7);
         [_middleBlackBtn addTarget:self action:@selector(middleBlackBtnClick:) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:_middleBlackBtn];
-        [_middleBlackBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        [_middleBlackBtn tx_makeConstraints:^(TXConstraintMaker *make) {
             make.center.equalTo(self);
-            make.height.mas_equalTo(33);
+            make.height.tx_equalTo(33);
         }];
     }
     return _middleBlackBtn;
@@ -2737,8 +2760,8 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     self.middleBlackBtn.titleLabel.text = msg;
     self.middleBlackBtnAction           = action;
     CGFloat width                       = self.middleBlackBtn.titleLabel.attributedText.size.width;
-    
-    [self.middleBlackBtn mas_updateConstraints:^(MASConstraintMaker *make) {
+
+    [self.middleBlackBtn tx_updateConstraints:^(TXConstraintMaker *make) {
         make.width.equalTo(@(width + 10));
     }];
     [self.middleBlackBtn fadeShow];
@@ -2776,7 +2799,7 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
         [_repeatBtn addTarget:self action:@selector(repeatBtnClick:) forControlEvents:UIControlEventTouchUpInside];
         _repeatBtn.hidden = YES;
         [self addSubview:_repeatBtn];
-        [_repeatBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        [_repeatBtn tx_makeConstraints:^(TXConstraintMaker *make) {
             make.center.equalTo(self);
         }];
     }
@@ -2793,39 +2816,39 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
     [self addSubview:self.playbackwardLabel];
     
     
-    [_playforwardView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.width.mas_equalTo(180);
-        make.top.equalTo(self.mas_top);
-        make.bottom.equalTo(self.mas_bottom);
-        make.trailing.equalTo(self.mas_trailing);
+    [_playforwardView tx_makeConstraints:^(TXConstraintMaker *make) {
+        make.width.tx_equalTo(180);
+        make.top.equalTo(self.tx_top);
+        make.bottom.equalTo(self.tx_bottom);
+        make.trailing.equalTo(self.tx_trailing);
     }];
-    [_playforwardImageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.leading.equalTo(_playforwardView.mas_leading).offset(70);
-        make.centerY.equalTo(self.mas_centerY);
-        make.width.height.mas_equalTo(40);
+    [_playforwardImageView tx_makeConstraints:^(TXConstraintMaker *make) {
+        make.leading.equalTo(_playforwardView.tx_leading).offset(70);
+        make.centerY.equalTo(self.tx_centerY);
+        make.width.height.tx_equalTo(40);
     }];
-    [_playforwardLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(_playforwardImageView.mas_bottom).offset(5);
-        make.centerX.equalTo(_playforwardImageView.mas_centerX);
-        make.width.mas_equalTo(70);
-        make.height.mas_equalTo(40);
+    [_playforwardLabel tx_makeConstraints:^(TXConstraintMaker *make) {
+        make.top.equalTo(_playforwardImageView.tx_bottom).offset(5);
+        make.centerX.equalTo(_playforwardImageView.tx_centerX);
+        make.width.tx_equalTo(70);
+        make.height.tx_equalTo(40);
     }];
-    [_playbackwardView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.leading.equalTo(self.mas_leading);
-        make.top.equalTo(self.mas_top);
-        make.bottom.equalTo(self.mas_bottom);
-        make.width.mas_equalTo(180);
+    [_playbackwardView tx_makeConstraints:^(TXConstraintMaker *make) {
+        make.leading.equalTo(self.tx_leading);
+        make.top.equalTo(self.tx_top);
+        make.bottom.equalTo(self.tx_bottom);
+        make.width.tx_equalTo(180);
     }];
-    [_playbackwardImageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.leading.equalTo(self.mas_leading).offset(70);
-        make.centerY.equalTo(self.mas_centerY);
-        make.width.height.mas_equalTo(40);
+    [_playbackwardImageView tx_makeConstraints:^(TXConstraintMaker *make) {
+        make.leading.equalTo(self.tx_leading).offset(70);
+        make.centerY.equalTo(self.tx_centerY);
+        make.width.height.tx_equalTo(40);
     }];
-    [_playbackwardLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(_playbackwardImageView.mas_bottom).offset(5);
-        make.centerX.equalTo(_playbackwardImageView.mas_centerX);
-        make.width.mas_equalTo(70);
-        make.height.mas_equalTo(40);
+    [_playbackwardLabel tx_makeConstraints:^(TXConstraintMaker *make) {
+        make.top.equalTo(_playbackwardImageView.tx_bottom).offset(5);
+        make.centerX.equalTo(_playbackwardImageView.tx_centerX);
+        make.width.tx_equalTo(70);
+        make.height.tx_equalTo(40);
     }];
 }
 
@@ -2895,10 +2918,10 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
         [_repeatBackBtn setImage:SuperPlayerImage(@"back_full") forState:UIControlStateNormal];
         [_repeatBackBtn addTarget:self action:@selector(controlViewBackAction:) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:_repeatBackBtn];
-        [_repeatBackBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        [_repeatBackBtn tx_makeConstraints:^(TXConstraintMaker *make) {
             make.left.equalTo(self).offset(15);
             make.top.equalTo(self).offset(15);
-            make.width.mas_equalTo(@30);
+            make.width.tx_equalTo(@30);
         }];
     }
     return _repeatBackBtn;
@@ -2919,9 +2942,9 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
         _spinner.hidesWhenStopped = YES;
         _spinner.tintColor        = [[UIColor whiteColor] colorWithAlphaComponent:0.9];
         [self addSubview:_spinner];
-        [_spinner mas_makeConstraints:^(MASConstraintMaker *make) {
+        [_spinner tx_makeConstraints:^(TXConstraintMaker *make) {
             make.center.equalTo(self);
-            make.width.with.height.mas_equalTo(45);
+            make.width.with.height.tx_equalTo(45);
         }];
     }
     return _spinner;
@@ -2934,8 +2957,8 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
         _coverImageView.clipsToBounds = YES;
         _coverImageView.contentMode            = UIViewContentModeScaleAspectFill;
         [self insertSubview:_coverImageView belowSubview:self.controlView];
-        [_coverImageView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.edges.mas_equalTo(UIEdgeInsetsZero);
+        [_coverImageView tx_makeConstraints:^(TXConstraintMaker *make) {
+            make.edges.tx_equalTo(UIEdgeInsetsZero);
         }];
     }
     return _coverImageView;
@@ -2964,10 +2987,10 @@ TXLiveBaseDelegate,TXLivePlayListener,TXVodPlayListener>
         [_centerPlayBtn setImage:SuperPlayerImage(@"play") forState:UIControlStateNormal];
         [_centerPlayBtn addTarget:self action:@selector(centerPlayBtnClick) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:_centerPlayBtn];
-        [_centerPlayBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        [_centerPlayBtn tx_makeConstraints:^(TXConstraintMaker *make) {
             make.center.equalTo(self);
-            make.width.mas_equalTo(120);
-            make.height.mas_equalTo(120);
+            make.width.tx_equalTo(120);
+            make.height.tx_equalTo(120);
         }];
     }
     return _centerPlayBtn;
