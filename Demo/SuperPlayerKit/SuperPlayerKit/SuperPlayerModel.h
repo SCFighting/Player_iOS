@@ -131,6 +131,9 @@ typedef NS_ENUM(NSInteger, SuperPlayerAction) {
 
 @property (nonatomic, strong) TXVodDownloadMediaInfo *mediaInfo;
 
+///是否是连麦加速流(默认为NO)
+@property(nonatomic, assign) BOOL ACC;
+
 @end
 
 /// Tencent Cloud VOD File ID playback parameters

@@ -210,8 +210,11 @@ typedef NS_ENUM(NSInteger, SuperPlayerLayoutStyle) {
 /// 播放器配置
 @property(nonatomic, strong) SuperPlayerViewConfig *playerConfig;
 /// Loop
-/// 循环播放
+/// 单个循环播放
 @property(nonatomic, assign) BOOL loop;
+/// Loop
+/// 列表循环播放
+@property(nonatomic, assign) BOOL loopPlayList;
 /// Video Sprite
 /// 视频雪碧图
 @property(nonatomic, strong) TXImageSprite *imageSprite;
@@ -221,6 +224,17 @@ typedef NS_ENUM(NSInteger, SuperPlayerLayoutStyle) {
 /// PIP Begain
 /// 是否正在开启画中画
 @property(nonatomic, assign) BOOL isPipStart;
+
+/**
+ *videoResolution 视频分辨率，开始播放后获取到
+ */
+@property(nonatomic,assign)CGSize videoResolution;
+
+/**
+ * 录播后台播放
+ */
+@property(nonatomic, assign) BOOL vodPlayInBackground;
+
 /**
   * play model
   * Note: Starting from version 10.7, you need to set the License through {@link TXLiveBase#setLicence} before you can successfully play, otherwise the playback will fail (black screen), and you only need to set it once globally.

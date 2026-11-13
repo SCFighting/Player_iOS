@@ -113,6 +113,7 @@
 - (void)showDynamicWateView {
     if (self.dynamicWaterModel != nil) {
         self.waterMarkLabel.hidden = NO;
+        NSLog(@"展示了幽灵水印");
     } else {
         [self hideDynamicWateView];
     }
