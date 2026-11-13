@@ -1,0 +1,62 @@
+Pod::Spec.new do |spec|
+  spec.name         = 'SuperPlayer'
+  spec.version      = '13.3.20845.1'
+  spec.license      = { :type => 'MIT' }
+  spec.homepage     = 'https://github.com/SCFighting/Player_iOS'
+  spec.authors      = 'tencent video cloud (upstream), SCFighting (customized)'
+  spec.summary      = '超级播放器定制版（基于官方 13.3.20845）'
+  spec.source       = { :git => 'https://github.com/SCFighting/Player_iOS.git', :tag => '13.3.20845.1' }
+
+  spec.ios.deployment_target = '9.0'
+  spec.dependency 'SDWebImage'
+  spec.static_framework  = true
+  spec.default_subspec   = 'Player'
+  spec.frameworks        = 'CoreMotion'
+
+  spec.subspec 'Player' do |s|
+    s.source_files = 'Demo/SuperPlayerKit/SuperPlayerKit/**/*.{h,m}'
+    s.resource_bundles = {
+      'SuperPlayerKitBundle' => [
+        'Demo/SuperPlayerKit/Resource/**/*',
+        'Demo/SuperPlayerKit/SuperPlayerKit/SuperPlayerLocalized/**/*'
+      ]
+    }
+    s.dependency 'TXLiteAVSDK_Player'
+    s.pod_target_xcconfig = {
+      'HEADER_SEARCH_PATHS' => ['${PODS_ROOT}/TXLiteAVSDK_Player/TXLiteAVSDK_Player/TXLiteAVSDK_Player.xcframework/ios-arm64_armv7/TXLiteAVSDK_Player.framework/Headers/'],
+      'IPHONEOS_DEPLOYMENT_TARGET' => '9.0'
+    }
+  end
+
+  spec.subspec 'Player_Premium' do |s|
+    s.source_files = 'Demo/SuperPlayerKit/SuperPlayerKit/**/*.{h,m}'
+    s.resource_bundles = {
+      'SuperPlayerKitBundle' => [
+        'Demo/SuperPlayerKit/Resource/**/*',
+        'Demo/SuperPlayerKit/SuperPlayerKit/SuperPlayerLocalized/**/*'
+      ]
+    }
+    s.dependency 'TXLiteAVSDK_Player_Premium'
+    s.pod_target_xcconfig = {
+      'HEADER_SEARCH_PATHS' => ['${PODS_ROOT}/TXLiteAVSDK_Player_Premium/TXLiteAVSDK_Player_Premium/TXLiteAVSDK_Player_Premium.xcframework/ios-arm64_armv7/TXLiteAVSDK_Player_Premium.framework/Headers/'],
+      'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64',
+      'FRAMEWORK_SEARCH_PATHS' => '$(inherited) ${PODS_ROOT}/TXLiteAVSDK_Player_Premium/**',
+      'IPHONEOS_DEPLOYMENT_TARGET' => '9.0'
+    }
+  end
+
+  spec.subspec 'Professional' do |s|
+    s.source_files = 'Demo/SuperPlayerKit/SuperPlayerKit/**/*.{h,m}'
+    s.resource_bundles = {
+      'SuperPlayerKitBundle' => [
+        'Demo/SuperPlayerKit/Resource/**/*',
+        'Demo/SuperPlayerKit/SuperPlayerKit/SuperPlayerLocalized/**/*'
+      ]
+    }
+    s.dependency 'TXLiteAVSDK_Professional'
+    s.pod_target_xcconfig = {
+      'HEADER_SEARCH_PATHS' => ['${PODS_ROOT}/TXLiteAVSDK_Professional/TXLiteAVSDK_Professional/TXLiteAVSDK_Professional.xcframework/ios-arm64_armv7/TXLiteAVSDK_Professional.framework/Headers/'],
+      'IPHONEOS_DEPLOYMENT_TARGET' => '9.0'
+    }
+  end
+end
